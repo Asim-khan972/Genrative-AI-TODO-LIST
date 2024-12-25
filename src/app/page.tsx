@@ -1,14 +1,49 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { CopilotPopup } from "@copilotkit/react-ui";
+import { useCopilotAction } from "@copilotkit/react-core";
 
 export default function Home() {
   const [tasks, setTasks] = useState<string[]>([]);
   const [task, setTask] = useState<string>("");
 
-  const addTask = () => {
-    if (task.trim()) {
-      setTasks([...tasks, task]);
+  // Define Copilot action
+  useCopilotAction({
+    name: "addTodoItem",
+    description: "Add a new todo item to the list",
+    parameters: [
+      {
+        name: "todoText",
+        type: "string",
+        description: "The text of the todo item to add",
+        required: true,
+      },
+    ],
+    handler: async ({ todoText }) => {
+      addTask(todoText);
+    },
+  });
+
+  useCopilotAction({
+    name: "DeleteTodoItem",
+    description: "Delete a  todo item from the list",
+    parameters: [
+      {
+        name: "index",
+        type: "number",
+        description: "The index text of the todo item to deltete",
+        required: true,
+      },
+    ],
+    handler: async ({ index }) => {
+      removeTask(index);
+    },
+  });
+
+  const addTask = (todoText: string) => {
+    if (todoText.trim()) {
+      setTasks([...tasks, todoText]);
       setTask("");
     }
   };
@@ -31,7 +66,7 @@ export default function Home() {
             onChange={(e) => setTask(e.target.value)}
           />
           <button
-            onClick={addTask}
+            onClick={() => addTask(task)}
             className="ml-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
           >
             Add
@@ -53,6 +88,18 @@ export default function Home() {
             </li>
           ))}
         </ul>
+
+        <>
+          <CopilotPopup
+            instructions={
+              "You are assisting the user as best as you can. Answer in the best way possible given the data you have."
+            }
+            labels={{
+              title: "Popup Assistant",
+              initial: "Need any help?",
+            }}
+          />
+        </>
       </main>
     </div>
   );
